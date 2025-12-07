@@ -1,0 +1,81 @@
+<!-- templates/scanner_view.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Vulnerability Scanner</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-light">
+<div class="container py-5">
+    <h1 class="mb-4 text-center">AI-Powered Vulnerability Scanner</h1>
+    <form method="POST" class="mb-4">
+        <textarea class="form-control mb-2" name="urls" rows="2" placeholder="Enter URL(s), comma separated" required>{{ urls_input or "" }}</textarea>
+        <button class="btn btn-primary w-100" type="submit">Scan</button>
+    </form>
+
+    {% if result %}
+        {% if result.error %}
+            <div class="alert alert-danger">Error: {{ result.error }}</div>
+        {% else %}
+            <div class="card p-3 mb-3">
+                <h5>Result for: {{ result.url }}</h5>
+                <p>SQL Injection Detected: {{ result.sql_injection }}</p>
+                <p>XSS Detected: {{ result.xss }}</p>
+                <p>Missing Headers: {{ result.missing_headers | join(', ') if result.missing_headers else 'None' }}</p>
+                <p>Risk Score: <span class="badge 
+                    {% if result.risk_label == 'Low Risk' %}bg-success
+                    {% elif result.risk_label == 'Medium Risk' %}bg-warning
+                    {% else %}bg-danger{% endif %}">
+                    {{ result.risk_score }} ({{ result.risk_label }})
+                </span></p>
+                {% if result.recommendations %}
+                    <p><strong>Recommendations:</strong></p>
+                    <ul>
+                        {% for rec in result.recommendations %}
+                            <li>{{ rec }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        {% endif %}
+    {% endif %}
+
+    {% if batch_results %}
+        <h3 class="mt-4">Batch Scan Results</h3>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>URL</th>
+                    <th>SQLi</th>
+                    <th>XSS</th>
+                    <th>Missing Headers</th>
+                    <th>Risk Score</th>
+                    <th>Risk Label</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for r in batch_results %}
+                <tr>
+                    <td>{{ r.url }}</td>
+                    <td>{{ r.sql_injection }}</td>
+                    <td>{{ r.xss }}</td>
+                    <td>{{ r.missing_headers | join(', ') if r.missing_headers else 'None' }}</td>
+                    <td>{{ r.risk_score }}</td>
+                    <td>
+                        <span class="badge 
+                        {% if r.risk_label == 'Low Risk' %}bg-success
+                        {% elif r.risk_label == 'Medium Risk' %}bg-warning
+                        {% else %}bg-danger{% endif %}">
+                        {{ r.risk_label }}</span>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+</div>
+</body>
+</html>
+
